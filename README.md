@@ -5,7 +5,7 @@ Author: Nakai Zemer.
 
 **Question:** which country-level factors are associated with life expectancy at birth, and how well can a multiple linear regression model predict it?
 
-**Data:** World Health Organization (WHO) 2021 country-level data: life expectancy at birth plus six candidate predictors (homicide rate, unintentional poisoning mortality, suicide mortality, road traffic mortality, universal health coverage index, domestic general government health expenditure). Life expectancy is reported for 185 countries; after listwise deletion the three models use 175, 179 and 171 countries.
+**Data:** World Health Organization (WHO) 2021 country-level data: life expectancy at birth plus six candidate predictors (homicide rate, unintentional poisoning mortality, suicide mortality, road traffic mortality, universal health coverage index, domestic general government health expenditure). Life expectancy is reported for 185 countries. After listwise deletion the first two models use 175 and 179 countries; the final model uses 171 after influential outliers are removed.
 
 ## Headline results
 
