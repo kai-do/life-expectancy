@@ -1,0 +1,33 @@
+# RStudio / R session files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# 296 MB WHO GHO extract (too large for GitHub; see who_life_expectancy_model.qmd for how it was pulled)
+*.fst
+
+# Private notes on classmates' presentations
+peer_review
+
+# WHO emblem/logo: use requires WHO's written permission
+WHO_on_white.png
+
+# Third-party publications and stock image, not redistributed
+9789240094703-eng.pdf
+ghe2021_lifetable_methods.pdf
+old-couple-*.jpg
+
+# Unused leftovers and third-party dataset (license not verified)
+test.csv
+datasets/life_expectancy_data.csv
+datasets/archive*.zip
+datasets/web_download.xlsx
+
+# Early scratch document that needs the excluded dataset above
+life_expectancy.qmd
+
+# Rendered outputs that embed the WHO logo (reproducible from the .qmd files)
+life_expectancy_final_report_html.html
+life_expectancy_final_report_html_files/
+who_life_expectancy_model_presentation.html

@@ -1,0 +1,180 @@
+---
+title: "Life Expectancy"
+format: html
+---
+
+```{r setup}
+
+library(tidyverse)
+
+```
+
+
+https://www.who.int/data/gho/data/themes/world-health-statistics
+
+https://www.who.int/data/gho/data/indicators/indicator-details/GHO/life-expectancy-at-birth-(years)
+
+```{r data}
+
+who_life_expectancy_pred_df <- read.csv('datasets/who_life_expectancy.csv') %>%
+  transmute(IND_NAME = Indicator,
+            DIM_GEO_NAME = Location,
+            IND_CODE = IndicatorCode,
+            DIM_GEO_CODE = SpatialDimValueCode,
+            DIM_TIME_YEAR = Period,
+            DIM_1_CODE = Dim1ValueCode,
+            VALUE_NUMERIC = FactValueNumeric,
+            VALUE_STRING = Value,
+            VALUE_COMMENTS = NA)
+
+who_life_expectancy_long_df <- read.csv('datasets/who_life_expectancy_indicators.csv') %>%
+  bind_rows(who_life_expectancy_pred_df) %>%
+  mutate(field_value = if_else(
+    is.na(DIM_1_CODE), as.character(IND_CODE), 
+    paste0(IND_CODE, "__", DIM_1_CODE)
+    ))
+
+value_definitions_df <- who_life_expectancy_long_df %>%
+  mutate(name = paste0("N_COUNTRIES_", DIM_TIME_YEAR)) %>%
+  group_by(IND_NAME, IND_CODE, field_value, name) %>%
+  summarise(COUNT = n()) %>%
+  pivot_wider(id_cols = c(IND_NAME, IND_CODE, field_value),
+              values_from = COUNT,
+              names_from = name)
+
+years <- sort(unique(who_life_expectancy_long_df$DIM_TIME_YEAR))
+
+who_life_expectancy_dfs <- list()
+
+for (year in years) {
+  append(who_life_expectancy_dfs, who_life_expectancy_long_df %>% 
+           filter(DIM_TIME_YEAR == year) %>%
+           pivot_wider(id_cols = c(DIM_GEO_CODE, DIM_GEO_NAME, DIM_TIME_YEAR),
+              names_from = field_value,
+              values_from = VALUE_NUMERIC,
+              names_sep = "__"))
+}
+
+who_life_expectancy_dfs <- lapply(years, function(year) {
+  who_life_expectancy_long_df %>%
+    filter(DIM_TIME_YEAR == year) %>%
+    pivot_wider(
+      id_cols = c(DIM_GEO_CODE, DIM_GEO_NAME, DIM_TIME_YEAR),
+      names_from = field_value,
+      values_from = VALUE_NUMERIC,
+      names_sep = "__"
+    )
+})
+
+names(who_life_expectancy_dfs) <- paste0('df_', years)
+
+
+who_life_expectancy_2019_df <- who_life_expectancy_dfs$df_2019 %>%
+  select(DIM_GEO_CODE, DIM_GEO_NAME, DIM_TIME_YEAR, 
+         WHOSIS_000001__SEX_BTSX, WHOSIS_000001__SEX_MLE, WHOSIS_000001__SEX_FMLE,
+         WHOSIS_000015__SEX_BTSX, WHOSIS_000015__SEX_MLE, WHOSIS_000015__SEX_FMLE,
+         SDGAIRBODA__SEX_BTSX, NCD_HYP_PREVALENCE_A__SEX_BTSX, SDGPM25, SDGWSHBOD__SEX_BTSX,
+         NUTRITION_ANAEMIA_REPRODUCTIVEAGE_PREV__SEX_FMLE, NCDMORT3070, 
+         SA_0000001688__SEX_BTSX) %>%
+  filter(if_all(everything(), ~ !is.na(.)))
+
+
+who_life_expectancy_2020_df <- who_life_expectancy_dfs$df_2020 %>%
+  select(DIM_GEO_CODE, DIM_GEO_NAME, DIM_TIME_YEAR, 
+         WHOSIS_000001__SEX_BTSX, WHOSIS_000001__SEX_MLE, WHOSIS_000001__SEX_FMLE,
+         WHOSIS_000015__SEX_BTSX, WHOSIS_000015__SEX_MLE, WHOSIS_000015__SEX_FMLE,
+         SDGHEPHBSAGPRV, MDG_0000000026) %>%
+  filter(if_all(everything(), ~ !is.na(.)))
+
+who_life_expectancy_2021_df <- who_life_expectancy_dfs$df_2021 %>%
+    transmute(DIM_GEO_CODE, DIM_GEO_NAME, DIM_TIME_YEAR, 
+         WHOSIS_000001__SEX_BTSX, WHOSIS_000001__SEX_MLE, WHOSIS_000001__SEX_FMLE,
+         WHOSIS_000015__SEX_BTSX, WHOSIS_000015__SEX_MLE, WHOSIS_000015__SEX_FMLE,
+         WHOSIS_0001__SEX_BTSX, WHOSIS_0001__SEX_MLE, WHOSIS_0001__SEX_FMLE,  
+         WHOSIS_0002__SEX_BTSX, WHOSIS_0002__SEX_MLE, WHOSIS_0002__SEX_FMLE,  
+         SDGSUICIDE, SDGPOISON, VIOLENCE_HOMICIDERATE, GHED_GGHE_DGGE_SHA2011 = `GHED_GGHE-DGGE_SHA2011`, 
+         UHC_INDEX_REPORTED, RS_198) %>%
+  filter(if_all(everything(), ~ !is.na(.)))
+
+indicators_to_keep <- value_definitions_df %>%
+  filter(N_COUNTRIES_2022 >= 0.5 * length(unique(who_life_expectancy_long_df$DIM_GEO_NAME))) %>%
+  pull(IND_CODE)
+
+who_life_expectancy_2022_df <- who_life_expectancy_dfs$df_2022 %>%
+  select(WHOSIS_000003__SEX_BTSX, 
+         NCD_BMI_30A__SEX_BTSX, M_Est_tob_curr_std__SEX_BTSX, SDGODAWS, WHS4_100, SDGHPVRECEIVED__SEX_FMLE, MALARIA_EST_INCIDENCE,
+         MCV2, WHOSIS_000003__SEX_BTSX, SDGHIV__SEX_BTSX, PCV3, NCD_BMI_PLUS2C__SEX_BTSX, NUTOVERWEIGHTPREV, NUTSTUNTINGPREV,
+         WSH_WATER_SAFELY_MANAGED, WSH_SANITATION_SAFELY_MANAGED, PHE_HHAIR_PROP_POP_CLEAN_FUELS, WSH_DOMESTIC_WASTE_SAFELY_TREATED,
+         SDGNTDTREATMENT, SDGODA01, MDG_0000000020, MDG_0000000007__SEX_BTSX)
+
+
+
+who_life_expectancy_df <- who_life_expectancy_long_df %>%
+  pivot_wider(id_cols = c(DIM_GEO_CODE, DIM_GEO_NAME, DIM_TIME_YEAR),
+              names_from = field_value,
+              values_from = VALUE_NUMERIC,
+              names_sep = "__")
+
+```
+
+```{r new-model}
+
+le_2019_lm <- lm(WHOSIS_000001__SEX_BTSX ~ SDGAIRBODA__SEX_BTSX + NCD_HYP_PREVALENCE_A__SEX_BTSX + SDGPM25 + SDGWSHBOD__SEX_BTSX +
+         NUTRITION_ANAEMIA_REPRODUCTIVEAGE_PREV__SEX_FMLE + NCDMORT3070 +
+         SA_0000001688__SEX_BTSX, data = who_life_expectancy_2019_df)
+
+le_2019_lm_2 <- lm(WHOSIS_000001__SEX_BTSX ~ SDGWSHBOD__SEX_BTSX + NUTRITION_ANAEMIA_REPRODUCTIVEAGE_PREV__SEX_FMLE + NCDMORT3070, data = who_life_expectancy_2019_df)
+
+le_2020_lm <- lm(WHOSIS_000001__SEX_BTSX ~ SDGHEPHBSAGPRV + MDG_0000000026, data = who_life_expectancy_2020_df)
+
+le_2021_lm <- lm(WHOSIS_000001__SEX_BTSX ~ SDGSUICIDE + SDGPOISON + VIOLENCE_HOMICIDERATE + 
+   GHED_GGHE_DGGE_SHA2011 + UHC_INDEX_REPORTED + RS_198, data = who_life_expectancy_2021_df)
+
+le_2021_lm_2 <- lm(WHOSIS_000001__SEX_BTSX ~ SDGSUICIDE + SDGPOISON + VIOLENCE_HOMICIDERATE + 
+                     UHC_INDEX_REPORTED + RS_198, data = who_life_expectancy_2021_df) ##
+
+summary(le_2019_lm)
+summary(le_2019_lm_2)
+
+summary(le_2020_lm)
+
+summary(le_2021_lm)
+summary(le_2021_lm_2)
+
+plot(le_2021_lm)
+
+# The wonderful country of Gutagong
+
+predict(le_2021_lm, data.frame(SDGSUICIDE = 24,
+                          SDGPOISON = 2,
+                          VIOLENCE_HOMICIDERATE = 38, 
+                          GHED_GGHE_DGGE_SHA2011 = 11,
+                          UHC_INDEX_REPORTED = 42,
+                          RS_198 = 15))
+
+```
+
+```{r cv}
+
+# Load the caret package for cross-validation
+library(caret)
+
+# Set up 10-fold cross-validation
+train_control <- trainControl(method = "cv", number = 10)
+
+# Train the model with cross-validation
+le_2021_lm_cv <- train(
+  WHOSIS_000001__SEX_BTSX ~ SDGSUICIDE + SDGPOISON + VIOLENCE_HOMICIDERATE + UHC_INDEX_REPORTED + RS_198,
+  data = who_life_expectancy_2021_df,
+  method = "lm",
+  trControl = train_control
+)
+
+# Output the results
+print(le_2021_lm_cv)
+
+
+plot(le_2021_lm_cv$finalModel)
+
+```
+

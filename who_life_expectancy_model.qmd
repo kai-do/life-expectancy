@@ -1,0 +1,76 @@
+---
+title: "Life Expectancy"
+format: html
+---
+
+```{r setup}
+
+library(tidyverse)
+library(ghost)
+
+```
+
+```{r data}
+
+inds <- gho_indicators()
+
+gho_dimensions()
+
+gho_dimension_values(dim = 'HRH_06')
+
+who_gho_indicators_test_df <- gho_data(inds = 'HRH_10')
+
+
+who_gho_indicators_dfs <- list()
+
+i <- 100
+max_i <- 1000
+
+for(i in 1:max_i) {
+  indicator_data <- gho_data(inds = inds$IndicatorCode[i], "$filter=SpatialDimType eq 'COUNTRY'")
+  
+  if(!is.null(indicator_data) && nrow(indicator_data) > 0) {
+    who_gho_indicators_dfs[[i]] <- indicator_data
+    cat(paste0("Indicator Code: ", indicator_data$IndicatorCode[1], " Iteration: ", i, "\n"))
+  } else {
+    cat(paste0("No data for Indicator Code: ", inds$IndicatorCode[i], " Iteration: ", i, "\n"))
+  }
+}
+
+who_gho_indicators_df <- bind_rows(who_gho_indicators_dfs)
+
+who_gho_indicators_clean_2014_long_df <- who_gho_indicators_df %>%
+  filter(!is.na(NumericValue),
+         TimeDim == '2014')
+
+
+who_gho_indicators_clean_2014_df <- who_gho_indicators_clean_2014_long_df %>%
+  mutate(field_value = if_else(
+    is.na(Dim1), as.character(IndicatorCode), 
+    paste0(IndicatorCode, "__", Dim1))) %>%
+    pivot_wider(
+      id_cols = c(SpatialDim, TimeDim),
+      names_from = field_value,
+      values_from = NumericValue,
+      names_sep = "__"
+    )
+
+value_definitions_df <- who_gho_indicators_clean_2014_long_df %>%
+  mutate(name = paste0("N_COUNTRIES_", TimeDim)) %>%
+  group_by(IndicatorCode, name) %>%
+  summarise(COUNT = n()) %>%
+  pivot_wider(id_cols = c(IndicatorCode),
+              values_from = COUNT,
+              names_from = name)
+
+
+```
+
+```{r model}
+
+
+```
+
+## References
+
+https://github.com/gpw13/ghost

@@ -1,0 +1,26 @@
+---
+title: "Life Expectancy Project Proposal"
+author: "Nakai Zemer"
+date: "2024-10-31"
+format: 
+  pdf:
+    documentclass: extarticle
+    font-size: 16pt 
+    geometry: "margin=1in"
+    number-sections: true
+bibliography: references.bib
+---
+
+## Project Title
+Predicting Life Expectancy Factors with Multiple Linear Regression
+
+## Purpose
+Understanding the impact of different factors on life expectancy can inform leaders on where to allocate resources most effectively. This project aims to develop statistically significant models that reveal the contribution of various predictors. Additionally, it is anticipated to distinguish which factors significantly impact life expectancy and quantify the magnitude of their influence.
+
+## Data Sources
+The project will utilize reliable datasets from the World Health Organization Global Health Observatory [@who_gho] and the *World Health Statistics 2024* report for their predictive utility [@who2024].
+
+## Methodology
+Linear regression will be used to model the relationship between life expectancy and the predictors. Regularization techniques such as Lasso or Ridge regression may be used if indicated. Due to the heterogeneity in predictor variable availability between years and countries, The project may require the creation of separate models for each year to best use the available predictors. 
+
+## References
